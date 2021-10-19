@@ -145,35 +145,40 @@ the stack trace is as follows:
 [source,java]
 ----
 java.lang.IndexOutOfBoundsException: Source emitted more than one item
+	at reactor.core.publisher.MonoSingle$SingleSubscriber.onNext(MonoSingle.java:129) <1>
+	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: <2>
+Assembly trace from producer [reactor.core.publisher.MonoSingle] : <3>
+	reactor.core.publisher.Flux.single(Flux.java:6676)
+	reactor.guide.GuideTests.scatterAndGather(GuideTests.java:949)
+	reactor.guide.GuideTests.populateDebug(GuideTests.java:962)
+	org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:55)
+	org.junit.rules.RunRules.evaluate(RunRules.java:20)
+Error has been observed by the following operator(s): <4>
+	|_	Flux.single ⇢ reactor.guide.GuideTests.scatterAndGather(GuideTests.java:949) <5>
+Stack trace: <6>
 	at reactor.core.publisher.MonoSingle$SingleSubscriber.onNext(MonoSingle.java:129)
-	at reactor.core.publisher.FluxOnAssembly$OnAssemblySubscriber.onNext(FluxOnAssembly.java:375) <1>
+	at reactor.core.publisher.FluxOnAssembly$OnAssemblySubscriber.onNext(FluxOnAssembly.java:375)
 ...
-<2>
+<7>
 ...
 	at reactor.core.publisher.Mono.subscribeWith(Mono.java:3204)
 	at reactor.core.publisher.Mono.subscribe(Mono.java:3090)
 	at reactor.core.publisher.Mono.subscribe(Mono.java:3057)
 	at reactor.core.publisher.Mono.subscribe(Mono.java:3029)
 	at reactor.guide.GuideTests.debuggingActivated(GuideTests.java:1000)
-	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: <3>
-Assembly trace from producer [reactor.core.publisher.MonoSingle] : <4>
-	reactor.core.publisher.Flux.single(Flux.java:6676)
-	reactor.guide.GuideTests.scatterAndGather(GuideTests.java:949)
-	reactor.guide.GuideTests.populateDebug(GuideTests.java:962)
-	org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:55)
-	org.junit.rules.RunRules.evaluate(RunRules.java:20)
-Error has been observed by the following operator(s): <5>
-	|_	Flux.single ⇢ reactor.guide.GuideTests.scatterAndGather(GuideTests.java:949) <6>
 ----
-<1> This is new: We see the wrapper operator that captures the stack.
-<2> Apart from that, the first section of the stack trace is still the same for the most
-part, showing a bit of the operator's internals (so we removed a bit of the snippet here).
-<3> This is where the traceback starts to appear.
-<4> First, we get some details about where the operator was assembled.
-<5> We also get a traceback of the error as it propagated through the operator chain,
+<1> The original stack trace is actually the least interesting part, it is being truncated
+and the remainder is moved at the end (see <6>)
+<2> This is where Reactor starts adding meaningful information (the `traceback`).
+<3> First, we get some details about where the operator was assembled.
+<4> We also get information about which operators the error propagated through,
 from first to last (error site to subscribe site).
-<6> Each operator that saw the error is mentioned along with the user class and line where it
+<5> Each operator that saw the error is mentioned along with the user class and line where it
 was used.
+<6> Finally, we get the full original stack trace. Notice how the second line reflects
+the wrapper operator that captures the stack.
+<7> Apart from that, the original stack trace is still the same for the most
+part, showing a bit of the operator's internals (so we removed a bit of the snippet here).
 ====
 
 The captured stack trace is appended to the original error as a
